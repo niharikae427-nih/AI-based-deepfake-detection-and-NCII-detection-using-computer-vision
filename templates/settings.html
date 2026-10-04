@@ -1,0 +1,102 @@
+{% extends "app_base.html" %}
+{% set active = 'settings' %}
+{% block title %}Settings — SENTRA AI{% endblock %}
+{% block app_content %}
+
+<div class="mb-8 animate-fade-up">
+  <h1 class="font-display text-2xl sm:text-3xl font-bold">Settings</h1>
+  <p class="text-slate-400 text-sm mt-1">Manage your profile, security, and preferences.</p>
+</div>
+
+<div class="grid lg:grid-cols-2 gap-6">
+  <!-- Profile update -->
+  <div class="glass-card animate-fade-up">
+    <h3 class="font-display font-semibold mb-5">Update Profile</h3>
+    <form method="POST" class="space-y-4">
+      <input type="hidden" name="form_type" value="profile">
+      <div>
+        <label class="text-xs text-slate-400 mb-1.5 block">Full Name</label>
+        <input type="text" name="name" value="{{ logged_in_user['name'] if logged_in_user else '' }}" required>
+      </div>
+      <div>
+        <label class="text-xs text-slate-400 mb-1.5 block">College / Institution</label>
+        <input type="text" name="college" value="{{ logged_in_user['college'] if logged_in_user else '' }}">
+      </div>
+      <div>
+        <label class="text-xs text-slate-400 mb-1.5 block">Department</label>
+        <input type="text" name="department" value="{{ logged_in_user['department'] if logged_in_user else '' }}">
+      </div>
+      <button type="submit" class="btn-primary ripple text-sm !py-2.5">Save Changes</button>
+    </form>
+  </div>
+
+  <!-- Password -->
+  <div class="glass-card animate-fade-up delay-1">
+    <h3 class="font-display font-semibold mb-5">Change Password</h3>
+    <form method="POST" class="space-y-4">
+      <input type="hidden" name="form_type" value="password">
+      <div>
+        <label class="text-xs text-slate-400 mb-1.5 block">Current Password</label>
+        <input type="password" name="current_password" required>
+      </div>
+      <div>
+        <label class="text-xs text-slate-400 mb-1.5 block">New Password</label>
+        <input type="password" name="new_password" required>
+      </div>
+      <button type="submit" class="btn-primary ripple text-sm !py-2.5">Update Password</button>
+    </form>
+  </div>
+
+  <!-- Preferences -->
+  <div class="glass-card animate-fade-up delay-2 lg:col-span-2">
+    <h3 class="font-display font-semibold mb-5">Preferences</h3>
+    <form method="POST" class="space-y-5">
+      <input type="hidden" name="form_type" value="preferences">
+
+      <div class="flex items-center justify-between py-2 border-b border-white/5">
+        <div>
+          <p class="text-sm font-medium">Dark Mode</p>
+          <p class="text-xs text-slate-500">SENTRA AI is designed dark-first for a cybersecurity aesthetic.</p>
+        </div>
+        <label class="inline-flex items-center">
+          <input type="checkbox" name="dark_mode" {% if logged_in_user and logged_in_user['dark_mode'] %}checked{% endif %} class="w-5 h-5 accent-cyan-500">
+        </label>
+      </div>
+
+      <div class="flex items-center justify-between py-2 border-b border-white/5">
+        <div>
+          <p class="text-sm font-medium">Voice Assistant</p>
+          <p class="text-xs text-slate-500">Enable spoken replies from ARIA, the AI assistant.</p>
+        </div>
+        <label class="inline-flex items-center">
+          <input type="checkbox" name="voice_assistant" {% if logged_in_user and logged_in_user['voice_assistant'] %}checked{% endif %} class="w-5 h-5 accent-cyan-500">
+        </label>
+      </div>
+
+      <div class="flex items-center justify-between py-2 border-b border-white/5">
+        <div>
+          <p class="text-sm font-medium">Notifications</p>
+          <p class="text-xs text-slate-500">Get notified about scan completions and NCII alerts.</p>
+        </div>
+        <label class="inline-flex items-center">
+          <input type="checkbox" name="notifications" {% if logged_in_user and logged_in_user['notifications'] %}checked{% endif %} class="w-5 h-5 accent-cyan-500">
+        </label>
+      </div>
+
+      <div class="flex items-center justify-between py-2">
+        <div>
+          <p class="text-sm font-medium">Language</p>
+          <p class="text-xs text-slate-500">Interface and assistant language.</p>
+        </div>
+        <select name="language" class="!w-40 !py-2 !text-sm">
+          {% for lang in ["English", "Hindi", "Spanish", "French"] %}
+          <option value="{{ lang }}" {% if logged_in_user and logged_in_user['language'] == lang %}selected{% endif %}>{{ lang }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <button type="submit" class="btn-primary ripple text-sm !py-2.5">Save Preferences</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

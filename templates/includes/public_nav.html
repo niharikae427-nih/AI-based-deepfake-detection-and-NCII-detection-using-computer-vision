@@ -1,0 +1,48 @@
+<nav class="fixed top-0 inset-x-0 z-40 glass-nav">
+  <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+    <a href="{{ url_for('landing') }}" class="flex items-center gap-3">
+      <div class="w-10 h-10 scan-ring bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+        <span class="relative z-10 text-lg">🛡️</span>
+      </div>
+      <div class="leading-tight">
+        <p class="font-display font-bold text-lg tracking-wide">SENTRA <span class="gradient-text">AI</span></p>
+        <p class="text-[10px] text-slate-400 tracking-widest uppercase -mt-1">Deepfake &amp; NCII Defense</p>
+      </div>
+    </a>
+
+    <div class="hidden lg:flex items-center gap-8 text-sm font-medium text-slate-300">
+      <a href="{{ url_for('landing') }}#home" class="hover:text-primary transition">Home</a>
+      <a href="{{ url_for('landing') }}#features" class="hover:text-primary transition">Features</a>
+      <a href="{{ url_for('landing') }}#how-it-works" class="hover:text-primary transition">How It Works</a>
+      <a href="{{ url_for('landing') }}#about-project" class="hover:text-primary transition">About Project</a>
+      <a href="{{ url_for('contact') }}" class="hover:text-primary transition">Contact</a>
+    </div>
+
+    <div class="hidden lg:flex items-center gap-3">
+      {% if logged_in_user %}
+        <a href="{{ url_for('dashboard') }}" class="btn-primary ripple text-sm !py-2.5">Go to Dashboard</a>
+      {% else %}
+        <a href="{{ url_for('login') }}" class="btn-outline ripple text-sm !py-2.5">Login</a>
+        <a href="{{ url_for('register') }}" class="btn-primary ripple text-sm !py-2.5">Register</a>
+      {% endif %}
+    </div>
+
+    <button onclick="toggleMobileNav()" class="lg:hidden text-2xl text-slate-200">☰</button>
+  </div>
+
+  <div id="mobile-nav" class="hidden lg:hidden px-6 pb-6 flex flex-col gap-3 text-sm font-medium text-slate-300 border-t border-white/5">
+    <a href="{{ url_for('landing') }}#home" class="py-1">Home</a>
+    <a href="{{ url_for('landing') }}#features" class="py-1">Features</a>
+    <a href="{{ url_for('landing') }}#how-it-works" class="py-1">How It Works</a>
+    <a href="{{ url_for('landing') }}#about-project" class="py-1">About Project</a>
+    <a href="{{ url_for('contact') }}" class="py-1">Contact</a>
+    <div class="flex gap-3 pt-2">
+      {% if logged_in_user %}
+        <a href="{{ url_for('dashboard') }}" class="btn-primary ripple text-sm !py-2.5 w-full text-center">Dashboard</a>
+      {% else %}
+        <a href="{{ url_for('login') }}" class="btn-outline ripple text-sm !py-2.5 w-full text-center">Login</a>
+        <a href="{{ url_for('register') }}" class="btn-primary ripple text-sm !py-2.5 w-full text-center">Register</a>
+      {% endif %}
+    </div>
+  </div>
+</nav>

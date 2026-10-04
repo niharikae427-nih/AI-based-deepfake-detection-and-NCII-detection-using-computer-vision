@@ -1,0 +1,816 @@
+{% extends "app_base.html" %}
+{% set active = 'ncii' %}
+
+{% block title %}NCII Safety Assessment — SENTRA AI{% endblock %}
+
+{% block app_content %}
+
+<div class="mb-8 animate-fade-up">
+  <span class="badge badge-danger mb-3">Protected Module</span>
+
+  <h1 class="font-display text-2xl sm:text-3xl font-bold">
+    NCII Safety Assessment
+  </h1>
+
+  <p class="text-slate-400 text-sm mt-1">
+    AI-powered visual safety screening for potentially sensitive or
+    intimate content. Unsafe previews are automatically blurred.
+  </p>
+</div>
+
+
+<div class="grid lg:grid-cols-2 gap-6">
+
+  <!-- ===================================================== -->
+  <!-- UPLOAD PANEL -->
+  <!-- ===================================================== -->
+
+  <div class="glass-card animate-fade-up">
+
+    <div id="drop-zone"
+         class="dropzone p-10 text-center cursor-pointer">
+
+      <input
+        type="file"
+        id="file-input"
+        accept=".jpg,.jpeg,.png"
+        class="hidden"
+      >
+
+      <div id="upload-placeholder">
+
+        <div class="text-5xl mb-4">🔒</div>
+
+        <p class="font-medium">
+          Drag & drop an image here
+        </p>
+
+        <p class="text-xs text-slate-500 mt-1">
+          or click to browse · Handled securely and confidentially
+        </p>
+
+        <p class="text-xs text-slate-600 mt-3">
+          Supported formats: JPG, JPEG, PNG
+        </p>
+
+      </div>
+
+
+      <div id="preview-wrap"
+           class="hidden scan-frame rounded-xl overflow-hidden relative">
+
+        <img
+          id="image-preview"
+          class="hidden w-full max-h-72 object-contain mx-auto rounded-xl"
+          alt="Uploaded image preview"
+        >
+
+        <div
+          id="scan-beam-el"
+          class="scan-beam hidden">
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <button
+      id="analyze-btn"
+      disabled
+      onclick="analyzeNcii()"
+      class="btn-primary ripple w-full mt-6 font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
+    >
+      Run Safety Analysis
+    </button>
+
+
+    <!-- Progress -->
+
+    <div id="progress-wrap" class="hidden mt-5">
+
+      <div class="flex justify-between text-xs text-slate-400 mb-2">
+
+        <span>
+          Running AI content-safety classifier…
+        </span>
+
+        <span id="progress-pct">
+          0%
+        </span>
+
+      </div>
+
+      <div class="progress-track">
+
+        <div
+          id="progress-fill"
+          class="progress-fill"
+          style="width:0%"
+        ></div>
+
+      </div>
+
+    </div>
+
+
+    <!-- Privacy information -->
+
+    <div class="mt-6 p-4 rounded-xl bg-primary/5 border border-primary/20">
+
+      <p class="text-xs text-slate-400 leading-relaxed">
+        🔐 <strong class="text-slate-300">
+        Privacy & Safety
+        </strong>
+        <br><br>
+
+        This module performs automated visual safety screening.
+        AI analysis alone cannot determine whether an image was
+        shared with or without consent.
+      </p>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- ===================================================== -->
+  <!-- EMPTY RESULT -->
+  <!-- ===================================================== -->
+
+  <div
+    id="empty-results"
+    class="glass-card flex items-center justify-center text-center animate-fade-up delay-1"
+  >
+
+    <div>
+
+      <div class="text-5xl mb-4 opacity-50">
+        🛡️
+      </div>
+
+      <p class="text-slate-400 text-sm">
+        Upload an image to run a confidential
+        NCII safety assessment.
+      </p>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- ===================================================== -->
+  <!-- RESULTS PANEL -->
+  <!-- ===================================================== -->
+
+  <div
+    id="results-panel"
+    class="glass-card hidden lg:col-span-2 animate-fade-up"
+  >
+
+    <!-- Header -->
+
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+
+      <div>
+
+        <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">
+          AI Analysis
+        </p>
+
+        <h2 class="font-display text-xl font-bold">
+          NCII Safety Assessment
+        </h2>
+
+      </div>
+
+      <span
+        id="result-badge"
+        class="badge"
+      >
+      </span>
+
+    </div>
+
+
+    <!-- Main metrics -->
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+
+
+      <!-- Confidence -->
+
+      <div class="p-5 rounded-xl bg-primary/5 border border-primary/20">
+
+        <p class="text-xs text-slate-500 mb-2">
+          Confidence
+        </p>
+
+        <p
+          id="result-confidence"
+          class="text-3xl font-display font-bold confidence-mono"
+        >
+          --%
+        </p>
+
+        <div class="progress-track mt-3">
+
+          <div
+            id="confidence-bar"
+            class="progress-fill"
+            style="width:0%"
+          ></div>
+
+        </div>
+
+      </div>
+
+
+      <!-- Risk -->
+
+      <div class="p-5 rounded-xl bg-primary/5 border border-primary/20">
+
+        <p class="text-xs text-slate-500 mb-2">
+          Risk Level
+        </p>
+
+        <span
+          id="risk-badge"
+          class="badge"
+        >
+        </span>
+
+      </div>
+
+
+      <!-- NSFW -->
+
+      <div class="p-5 rounded-xl bg-primary/5 border border-primary/20">
+
+        <p class="text-xs text-slate-500 mb-2">
+          NSFW Score
+        </p>
+
+        <p
+          id="nsfw-score"
+          class="text-2xl font-display font-bold"
+        >
+          --%
+        </p>
+
+        <p class="text-xs text-slate-500 mt-1">
+          Sensitive-content probability
+        </p>
+
+      </div>
+
+
+      <!-- Normal -->
+
+      <div class="p-5 rounded-xl bg-primary/5 border border-primary/20">
+
+        <p class="text-xs text-slate-500 mb-2">
+          Normal Score
+        </p>
+
+        <p
+          id="normal-score"
+          class="text-2xl font-display font-bold"
+        >
+          --%
+        </p>
+
+        <p class="text-xs text-slate-500 mt-1">
+          Normal-content probability
+        </p>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- Secondary metrics -->
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+
+
+      <div class="p-4 rounded-xl border border-slate-800">
+
+        <p class="text-xs text-slate-500">
+          Faces Detected
+        </p>
+
+        <p
+          id="face-count"
+          class="text-xl font-semibold mt-1"
+        >
+          --
+        </p>
+
+      </div>
+
+
+      <div class="p-4 rounded-xl border border-slate-800">
+
+        <p class="text-xs text-slate-500">
+          Processing Time
+        </p>
+
+        <p
+          id="processing-time"
+          class="text-xl font-semibold mt-1"
+        >
+          -- ms
+        </p>
+
+      </div>
+
+
+      <div class="p-4 rounded-xl border border-slate-800">
+
+        <p class="text-xs text-slate-500">
+          AI Model
+        </p>
+
+        <p
+          id="model-used"
+          class="text-sm font-medium mt-2 break-all"
+        >
+          --
+        </p>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- Explanation -->
+
+    <div class="mb-6">
+
+      <p class="text-xs text-slate-500 mb-2">
+        AI Explanation
+      </p>
+
+      <div class="p-4 rounded-xl bg-primary/5 border border-primary/20">
+
+        <p
+          id="result-explanation"
+          class="text-sm text-slate-300 leading-relaxed"
+        >
+        </p>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- Recommendation -->
+
+    <div class="mb-6">
+
+      <p class="text-xs text-slate-500 mb-2">
+        Recommendation
+      </p>
+
+      <div class="p-4 rounded-xl bg-primary/5 border border-primary/20">
+
+        <p
+          id="result-recommendation"
+          class="text-sm text-slate-300 leading-relaxed"
+        >
+        </p>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- Important limitation -->
+
+    <div class="p-4 rounded-xl border border-warning/30 bg-warning/5 mb-6">
+
+      <p class="text-xs text-slate-300 leading-relaxed">
+
+        ⚠️ <strong>Important:</strong>
+
+        Consent cannot be determined from image analysis alone.
+        A high-risk result is a safety-screening signal and does
+        not by itself prove that an image is NCII.
+
+      </p>
+
+    </div>
+
+
+
+    <!-- Action buttons -->
+
+    <div
+      id="action-buttons"
+      class="hidden grid grid-cols-2 lg:grid-cols-4 gap-3"
+    >
+
+      <button
+        class="btn-outline ripple !py-2.5 text-sm border-danger/40 hover:border-danger"
+      >
+        🚨 Report Abuse
+      </button>
+
+      <button
+        class="btn-outline ripple !py-2.5 text-sm"
+      >
+        🗑️ Request Removal
+      </button>
+
+      <button
+        class="btn-outline ripple !py-2.5 text-sm"
+      >
+        📞 Cybercrime Help
+      </button>
+
+      <button
+        class="btn-outline ripple !py-2.5 text-sm"
+      >
+        💛 Victim Support Guide
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}
+
+
+
+{% block extra_scripts %}
+
+<script>
+
+let selectedFile = null;
+
+
+/* ============================================================
+   DROPZONE
+   ============================================================ */
+
+initDropzone({
+
+  zoneId: 'drop-zone',
+
+  inputId: 'file-input',
+
+  previewId: 'preview-wrap',
+
+  onFile: (file) => {
+
+    selectedFile = file;
+
+    document
+      .getElementById('upload-placeholder')
+      .classList.add('hidden');
+
+    document
+      .getElementById('preview-wrap')
+      .classList.remove('hidden');
+
+    const imgEl =
+      document.getElementById('image-preview');
+
+    imgEl.classList.remove('hidden');
+
+    imgEl.src =
+      URL.createObjectURL(file);
+
+    document
+      .getElementById('analyze-btn')
+      .disabled = false;
+
+  }
+
+});
+
+
+
+/* ============================================================
+   FAKE PROGRESS
+   ============================================================ */
+
+function fakeProgress(onDone) {
+
+  const wrap =
+    document.getElementById('progress-wrap');
+
+  const fill =
+    document.getElementById('progress-fill');
+
+  const pct =
+    document.getElementById('progress-pct');
+
+  const beam =
+    document.getElementById('scan-beam-el');
+
+  wrap.classList.remove('hidden');
+
+  beam.classList.remove('hidden');
+
+  let p = 0;
+
+  const timer = setInterval(() => {
+
+    p += Math.random() * 16;
+
+    if (p >= 100) {
+
+      p = 100;
+
+      clearInterval(timer);
+
+      onDone();
+
+    }
+
+    fill.style.width = p + '%';
+
+    pct.textContent =
+      Math.floor(p) + '%';
+
+  }, 230);
+
+}
+
+
+
+/* ============================================================
+   ANALYZE
+   ============================================================ */
+
+async function analyzeNcii() {
+
+  if (!selectedFile) return;
+
+  const analyzeBtn =
+    document.getElementById('analyze-btn');
+
+  analyzeBtn.disabled = true;
+
+  document
+    .getElementById('results-panel')
+    .classList.add('hidden');
+
+  document
+    .getElementById('empty-results')
+    .classList.add('hidden');
+
+
+  const formData = new FormData();
+
+  formData.append(
+    'file',
+    selectedFile
+  );
+
+
+  fakeProgress(async () => {
+
+    try {
+
+      const res = await fetch(
+        '/api/detect/ncii',
+        {
+          method: 'POST',
+          body: formData
+        }
+      );
+
+
+      const data = await res.json();
+
+
+      if (data.error) {
+
+        alert(data.error);
+
+        analyzeBtn.disabled = false;
+
+        return;
+
+      }
+
+
+      renderResult(data);
+
+
+    } catch (e) {
+
+      console.error(e);
+
+      alert(
+        'Something went wrong running the safety analysis.'
+      );
+
+    }
+
+
+    analyzeBtn.disabled = false;
+
+  });
+
+}
+
+
+
+/* ============================================================
+   RISK BADGE
+   ============================================================ */
+
+function riskBadgeClass(level) {
+
+  if (level === 'High')
+    return 'badge-danger';
+
+  if (level === 'Medium')
+    return 'badge-warning';
+
+  return 'badge-success';
+
+}
+
+
+
+/* ============================================================
+   RESULT RENDER
+   ============================================================ */
+
+function renderResult(data) {
+
+  document
+    .getElementById('progress-wrap')
+    .classList.add('hidden');
+
+  document
+    .getElementById('scan-beam-el')
+    .classList.add('hidden');
+
+  document
+    .getElementById('results-panel')
+    .classList.remove('hidden');
+
+
+  /* Result badge */
+
+  const badge =
+    document.getElementById('result-badge');
+
+
+  badge.textContent =
+    data.category;
+
+
+  if (data.category === 'Safe') {
+
+    badge.className =
+      'badge badge-success';
+
+  }
+
+  else if (data.category === 'Potential NCII') {
+
+    badge.className =
+      'badge badge-warning';
+
+  }
+
+  else {
+
+    badge.className =
+      'badge badge-danger';
+
+  }
+
+
+
+  /* Confidence */
+
+  document
+    .getElementById('result-confidence')
+    .textContent =
+      data.confidence + '%';
+
+
+  document
+    .getElementById('confidence-bar')
+    .style.width =
+      Math.min(data.confidence, 100) + '%';
+
+
+
+  /* Risk */
+
+  const riskBadge =
+    document.getElementById('risk-badge');
+
+  riskBadge.textContent =
+    data.risk_level;
+
+  riskBadge.className =
+    'badge ' +
+    riskBadgeClass(data.risk_level);
+
+
+
+  /* Scores */
+
+  document
+    .getElementById('nsfw-score')
+    .textContent =
+      data.nsfw_score + '%';
+
+
+  document
+    .getElementById('normal-score')
+    .textContent =
+      data.normal_score + '%';
+
+
+
+  /* Face count */
+
+  document
+    .getElementById('face-count')
+    .textContent =
+      data.face_count;
+
+
+
+  /* Processing */
+
+  document
+    .getElementById('processing-time')
+    .textContent =
+      data.processing_time_ms + ' ms';
+
+
+
+  /* Model */
+
+  document
+    .getElementById('model-used')
+    .textContent =
+      data.model_used;
+
+
+
+  /* Explanation */
+
+  document
+    .getElementById('result-explanation')
+    .textContent =
+      data.explanation;
+
+
+
+  /* Recommendation */
+
+  document
+    .getElementById('result-recommendation')
+    .textContent =
+      data.recommendation;
+
+
+
+  /* Action buttons */
+
+  const actionButtons =
+    document.getElementById('action-buttons');
+
+
+  if (data.category !== 'Safe') {
+
+    actionButtons.classList.remove('hidden');
+
+    actionButtons.classList.add('grid');
+
+  }
+
+  else {
+
+    actionButtons.classList.add('hidden');
+
+    actionButtons.classList.remove('grid');
+
+  }
+
+}
+
+</script>
+
+{% endblock %}

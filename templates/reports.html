@@ -1,0 +1,52 @@
+{% extends "app_base.html" %}
+{% set active = 'reports' %}
+{% block title %}Reports — SENTRA AI{% endblock %}
+{% block app_content %}
+
+<div class="mb-8 animate-fade-up">
+  <h1 class="font-display text-2xl sm:text-3xl font-bold">Reports</h1>
+  <p class="text-slate-400 text-sm mt-1">Every scan generates a downloadable report with full model details.</p>
+</div>
+
+<div class="glass-card animate-fade-up delay-1 !p-0 overflow-hidden">
+  {% if scans %}
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="bg-white/5 text-slate-400 text-xs uppercase tracking-wide">
+        <tr>
+          <th class="text-left px-5 py-3">File</th>
+          <th class="text-left px-5 py-3">Type</th>
+          <th class="text-left px-5 py-3">Prediction</th>
+          <th class="text-left px-5 py-3">Confidence</th>
+          <th class="text-left px-5 py-3">Detected</th>
+          <th class="text-left px-5 py-3">Model</th>
+          <th class="text-right px-5 py-3">Report</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for scan in scans %}
+        <tr class="border-t border-white/5 hover:bg-white/[0.03]">
+          <td class="px-5 py-3.5 max-w-[200px] truncate">{{ scan['file_name'] }}</td>
+          <td class="px-5 py-3.5 capitalize text-slate-400">{{ scan['file_type'] }}</td>
+          <td class="px-5 py-3.5">
+            <span class="badge {% if scan['prediction'] in ['Fake','Unsafe','Potential NCII'] %}badge-danger{% else %}badge-success{% endif %}">{{ scan['prediction'] }}</span>
+          </td>
+          <td class="px-5 py-3.5 confidence-mono">{{ scan['confidence'] }}%</td>
+          <td class="px-5 py-3.5 text-slate-400">{{ scan['created_at'][:19].replace('T',' ') }}</td>
+          <td class="px-5 py-3.5 text-slate-400">{{ scan['model_used'] }}</td>
+          <td class="px-5 py-3.5 text-right">
+            <a href="{{ url_for('download_report', scan_id=scan['id']) }}" class="text-primary hover:underline text-xs font-medium">View / Download</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="text-center py-16">
+    <p class="text-5xl mb-4 opacity-50">📄</p>
+    <p class="text-slate-400 text-sm">No reports yet — analyze a file to generate your first report.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

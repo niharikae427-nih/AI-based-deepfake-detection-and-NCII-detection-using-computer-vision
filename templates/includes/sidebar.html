@@ -1,0 +1,52 @@
+<aside id="app-sidebar" class="fixed lg:sticky top-0 left-0 h-screen w-72 shrink-0 z-40 -translate-x-full lg:translate-x-0 transition-transform duration-300 glass-card !rounded-none !border-y-0 !border-l-0 flex flex-col">
+  <div class="px-6 py-6 flex items-center gap-3 border-b border-white/5">
+    <div class="w-10 h-10 scan-ring bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+      <span class="relative z-10 text-lg">🛡️</span>
+    </div>
+    <div class="leading-tight">
+      <p class="font-display font-bold tracking-wide">SENTRA <span class="gradient-text">AI</span></p>
+      <p class="text-[10px] text-slate-400 tracking-widest uppercase -mt-1">Control Center</p>
+    </div>
+  </div>
+
+  <nav class="flex-1 overflow-y-auto px-4 py-5 space-y-1">
+    <a href="{{ url_for('dashboard') }}" class="sidebar-link {{ 'active' if active == 'dashboard' }}">
+      <span>📊</span> Dashboard
+    </a>
+    <a href="{{ url_for('image_detection_page') }}" class="sidebar-link {{ 'active' if active == 'image' }}">
+      <span>🖼️</span> Image Detection
+    </a>
+    <a href="{{ url_for('video_detection_page') }}" class="sidebar-link {{ 'active' if active == 'video' }}">
+      <span>🎬</span> Video Detection
+    </a>
+    <a href="{{ url_for('audio_detection_page') }}" class="sidebar-link {{ 'active' if active == 'audio' }}">
+      <span>🎙️</span> Audio Detection
+    </a>
+    <a href="{{ url_for('ncii_detection_page') }}" class="sidebar-link {{ 'active' if active == 'ncii' }}">
+      <span>🔒</span> NCII Detection
+    </a>
+    <div class="pt-4 pb-1 px-3 text-[10px] uppercase tracking-widest text-slate-500">Insights</div>
+    <a href="{{ url_for('reports') }}" class="sidebar-link {{ 'active' if active == 'reports' }}">
+      <span>📄</span> Reports
+    </a>
+    <a href="{{ url_for('history') }}" class="sidebar-link {{ 'active' if active == 'history' }}">
+      <span>🕓</span> Scan History
+    </a>
+    <div class="pt-4 pb-1 px-3 text-[10px] uppercase tracking-widest text-slate-500">Account</div>
+    <a href="{{ url_for('profile') }}" class="sidebar-link {{ 'active' if active == 'profile' }}">
+      <span>👤</span> User Profile
+    </a>
+    <a href="{{ url_for('settings') }}" class="sidebar-link {{ 'active' if active == 'settings' }}">
+      <span>⚙️</span> Settings
+    </a>
+  </nav>
+
+  <div class="px-4 py-5 border-t border-white/5">
+    <a href="{{ url_for('logout') }}" class="sidebar-link hover:!bg-danger/10 hover:!text-red-400">
+      <span>🚪</span> Logout
+    </a>
+  </div>
+</aside>
+
+<!-- Mobile overlay -->
+<div onclick="toggleSidebar()" id="sidebar-overlay" class="fixed inset-0 bg-black/60 z-30 lg:hidden hidden"></div>

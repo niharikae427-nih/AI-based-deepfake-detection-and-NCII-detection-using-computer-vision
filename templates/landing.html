@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% block title %}SENTRA AI — Deepfake &amp; NCII Detection Platform{% endblock %}
+
+{% block content %}
+{% include "includes/public_nav.html" %}
+
+<!-- ============ HERO ============ -->
+<section id="home" class="relative pt-40 pb-28 px-6 overflow-hidden">
+  <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+    <div class="animate-fade-up">
+      <span class="badge badge-info mb-6 inline-flex items-center gap-2">
+        <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+        Computer Vision &middot; Deep Learning &middot; Cyber Safety
+      </span>
+      <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.1] tracking-tight">
+        AI Based <span class="gradient-text text-glow-cyan">Deepfake</span> And
+        <span class="gradient-text">NCII</span> Detection Using Computer Vision
+      </h1>
+      <p class="mt-6 text-lg text-slate-400 max-w-xl leading-relaxed">
+        An artificial intelligence powered platform that detects deepfake images,
+        deepfake videos, fake voices, and Non-Consensual Intimate Images (NCII)
+        using computer vision and deep learning — built to protect people, not just pixels.
+      </p>
+      <div class="mt-9 flex flex-wrap gap-4">
+        <a href="{{ url_for('register') }}" class="btn-primary ripple font-semibold">Get Started →</a>
+        <a href="#how-it-works" class="btn-outline ripple font-semibold">Learn More</a>
+      </div>
+
+      <div class="mt-10 flex items-center gap-6 text-xs text-slate-500">
+        <div class="flex items-center gap-2"><span class="text-success">●</span> Real-time scanning</div>
+        <div class="flex items-center gap-2"><span class="text-primary">●</span> Multi-modal AI models</div>
+        <div class="flex items-center gap-2"><span class="text-secondary">●</span> Privacy-first design</div>
+      </div>
+    </div>
+
+    <!-- Signature visual: radar / scan composition -->
+    <div class="relative h-[420px] flex items-center justify-center animate-fade-in delay-2">
+      <div class="absolute w-80 h-80 rounded-full border border-primary/20 animate-floaty"></div>
+      <div class="absolute w-64 h-64 rounded-full border border-secondary/20"></div>
+      <div class="absolute w-96 h-96 rounded-full" style="background: radial-gradient(circle, rgba(6,182,212,0.08) 0%, transparent 70%);"></div>
+
+      <div class="relative w-56 h-56 rounded-full glass-card !p-0 ring-glow flex items-center justify-center overflow-hidden scan-frame">
+        <span class="text-6xl">🧑‍💻</span>
+        <div class="scan-beam"></div>
+      </div>
+
+      <div class="absolute top-6 left-2 glass-card !p-3 !rounded-2xl animate-floaty" style="animation-delay:-1s">
+        <p class="text-[10px] text-slate-400">Image Scan</p>
+        <p class="text-sm font-bold text-success confidence-mono">REAL · 98.2%</p>
+      </div>
+      <div class="absolute bottom-10 right-0 glass-card !p-3 !rounded-2xl animate-floaty" style="animation-delay:-2.4s">
+        <p class="text-[10px] text-slate-400">Voice Scan</p>
+        <p class="text-sm font-bold text-danger confidence-mono">FAKE · 91.7%</p>
+      </div>
+      <div class="absolute bottom-0 left-6 glass-card !p-3 !rounded-2xl animate-floaty" style="animation-delay:-3.6s">
+        <p class="text-[10px] text-slate-400">NCII Module</p>
+        <p class="text-sm font-bold text-primary confidence-mono">SAFE · 99.1%</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ANIMATED STATS ============ -->
+<section id="stats-section" class="px-6 pb-24">
+  <div class="max-w-7xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+    {% set stats = [
+      ("Files Scanned", 482913, "", "📁"),
+      ("Deepfakes Detected", 76542, "", "🎭"),
+      ("NCII Cases Detected", 12408, "", "🔒"),
+      ("Detection Accuracy", 97.8, "%", "🎯")
+    ] %}
+    {% for label, value, suffix, icon in stats %}
+    <div class="glass-card glass-card-hover text-center animate-fade-up delay-{{ loop.index }}">
+      <div class="text-2xl mb-2">{{ icon }}</div>
+      <p class="font-display text-3xl font-bold gradient-text">
+        <span data-counter="{{ value }}" {% if suffix == '%' %}data-decimals="1"{% endif %}>0</span>{{ suffix }}
+      </p>
+      <p class="text-xs text-slate-400 mt-2 tracking-wide uppercase">{{ label }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- ============ FEATURES ============ -->
+<section id="features" class="px-6 py-24 border-t border-white/5">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center max-w-2xl mx-auto mb-16 animate-fade-up">
+      <span class="text-primary text-xs tracking-widest uppercase font-semibold">Capabilities</span>
+      <h2 class="font-display text-3xl sm:text-4xl font-bold mt-3">One platform, every media type</h2>
+      <p class="text-slate-400 mt-4">Purpose-built detection modules trained to spot the artifacts of synthetic and non-consensual media.</p>
+    </div>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% set features = [
+        ("🖼️", "Image Detection", "Detects GAN-based and face-swap manipulation in JPG/PNG images using CNN classifiers.", "primary"),
+        ("🎬", "Video Detection", "Frame-by-frame analysis flags unsafe segments and temporal inconsistencies in MP4/AVI/MOV files.", "secondary"),
+        ("🎙️", "Audio Detection", "Spectral and MFCC-based voice analysis identifies synthetic, cloned, or manipulated speech.", "primary"),
+        ("🔒", "NCII Detection", "A dedicated safety module flags non-consensual intimate imagery and auto-blurs unsafe previews.", "danger"),
+        ("🤖", "AI Assistant", "ARIA guides users through detection results, confidence scores, and cyber-safety best practices.", "secondary"),
+        ("📄", "Detailed Reports", "Every scan produces a downloadable report with model used, confidence, and risk recommendation.", "primary"),
+      ] %}
+      {% for icon, title, desc, color in features %}
+      <div class="glass-card glass-card-hover animate-fade-up delay-{{ loop.index }}">
+        <div class="w-12 h-12 rounded-2xl bg-{{ color }}/10 border border-{{ color }}/30 flex items-center justify-center text-xl mb-5">{{ icon }}</div>
+        <h3 class="font-display font-semibold text-lg">{{ title }}</h3>
+        <p class="text-sm text-slate-400 mt-2 leading-relaxed">{{ desc }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section id="how-it-works" class="px-6 py-24 border-t border-white/5">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center max-w-2xl mx-auto mb-16 animate-fade-up">
+      <span class="text-secondary text-xs tracking-widest uppercase font-semibold">Process</span>
+      <h2 class="font-display text-3xl sm:text-4xl font-bold mt-3">From upload to verdict in seconds</h2>
+    </div>
+
+    <div class="grid md:grid-cols-4 gap-6">
+      {% set steps = [
+        ("01", "Upload Media", "Drag and drop an image, video, or audio file into the relevant detection module."),
+        ("02", "AI Analysis", "Deep learning models scan pixels, frames, or spectrograms for manipulation artifacts."),
+        ("03", "Get Verdict", "Receive a Real/Fake or Safe/Unsafe verdict with a calibrated confidence score."),
+        ("04", "Take Action", "Download a report, view AI explanations, or use built-in reporting and support tools."),
+      ] %}
+      {% for num, title, desc in steps %}
+      <div class="relative glass-card animate-fade-up delay-{{ loop.index }}">
+        <p class="font-display text-4xl font-bold text-white/10">{{ num }}</p>
+        <h3 class="font-display font-semibold mt-2">{{ title }}</h3>
+        <p class="text-sm text-slate-400 mt-2 leading-relaxed">{{ desc }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ============ ABOUT PROJECT ============ -->
+<section id="about-project" class="px-6 py-24 border-t border-white/5">
+  <div class="max-w-5xl mx-auto glass-card !p-10 lg:!p-14 text-center animate-fade-up">
+    <span class="text-primary text-xs tracking-widest uppercase font-semibold">About the Project</span>
+    <h2 class="font-display text-3xl font-bold mt-3">Built for academic research &amp; real-world defense</h2>
+    <p class="text-slate-400 mt-5 leading-relaxed max-w-3xl mx-auto">
+      SENTRA AI is a final-year computer vision project demonstrating how deep learning
+      architectures — EfficientNet, XceptionNet, YOLO, and CNN-based spectral models — can be
+      combined into a single platform to detect deepfakes and non-consensual intimate imagery.
+      The current build ships with realistic placeholder inference so the full product
+      experience, database, and reporting pipeline can be demonstrated end-to-end, with clearly
+      marked integration points for production TensorFlow / OpenCV / Librosa models.
+    </p>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-10 text-left">
+      {% for label in ["TensorFlow", "OpenCV", "Librosa", "YOLO / CNN"] %}
+      <div class="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-sm text-center text-slate-300">{{ label }}</div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="px-6 py-12 border-t border-white/5">
+  <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 scan-ring bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-sm">🛡️</div>
+      <p class="font-display font-semibold">SENTRA <span class="gradient-text">AI</span></p>
+    </div>
+    <p class="text-xs text-slate-500 text-center">© 2026 SENTRA AI — Academic Demonstration Project. Not for production use without a licensed content-safety review.</p>
+    <div class="flex gap-4 text-sm text-slate-400">
+      <a href="{{ url_for('contact') }}" class="hover:text-primary">Contact</a>
+      <a href="#about-project" class="hover:text-primary">About</a>
+    </div>
+  </div>
+</footer>
+
+{% include "includes/assistant.html" %}
+{% endblock %}

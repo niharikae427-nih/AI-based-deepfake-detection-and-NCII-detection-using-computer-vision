@@ -1,0 +1,11 @@
+tfenv/
+__pycache__/
+*.pyc
+
+.secret_key
+database.db
+
+ncii_dataset/
+
+deepfake_cnn_224.keras
+deepfake_cnn_224_backup.keras

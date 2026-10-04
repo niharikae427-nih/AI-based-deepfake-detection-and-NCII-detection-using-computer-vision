@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Page Not Found — SENTRA AI{% endblock %}
+{% block content %}
+<div class="min-h-screen flex items-center justify-center px-6 text-center">
+  <div class="animate-fade-up">
+    <p class="font-display text-7xl font-bold gradient-text">404</p>
+    <p class="text-slate-400 mt-4">This page couldn't be found — it may have been moved or never existed.</p>
+    <a href="{{ url_for('landing') }}" class="btn-primary ripple inline-block mt-8">Back to Home</a>
+  </div>
+</div>
+{% endblock %}

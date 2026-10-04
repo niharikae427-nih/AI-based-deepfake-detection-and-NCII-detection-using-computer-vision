@@ -1,0 +1,47 @@
+<!-- Floating AI Assistant -->
+<button id="assistant-launcher" onclick="toggleAssistant()"
+  class="fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full scan-ring bg-gradient-to-br from-primary via-secondary to-accent shadow-2xl shadow-cyan-500/30 flex items-center justify-center transition-transform hover:scale-105">
+  <span class="text-2xl relative z-10">🤖</span>
+</button>
+
+<div id="assistant-panel" class="hidden fixed bottom-6 right-6 z-50 w-[92vw] max-w-sm h-[32rem] glass-card !p-0 flex-col overflow-hidden ring-glow animate-fade-up">
+  <!-- Header -->
+  <div class="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/5">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-full scan-ring bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-lg">🧠</div>
+      <div>
+        <p class="text-sm font-semibold font-display">ARIA</p>
+        <p class="text-[11px] text-slate-400 flex items-center gap-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-success inline-block"></span> AI Safety Assistant
+        </p>
+      </div>
+    </div>
+    <div class="flex items-center gap-1">
+      <button id="voice-toggle-btn" onclick="toggleAssistantVoice()" title="Toggle voice replies" class="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center text-slate-300">🔊</button>
+      <button onclick="toggleAssistant()" class="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center text-slate-300">✕</button>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div id="assistant-log" class="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+    <div class="flex justify-start">
+      <div class="max-w-[80%] bg-white/5 border border-white/10 text-slate-100 text-sm rounded-2xl rounded-bl-sm px-4 py-2.5">
+        Hi, I'm ARIA 👋 — your AI safety assistant. Ask me about deepfake detection, NCII, confidence scores, or how to upload a file.
+      </div>
+    </div>
+  </div>
+
+  <!-- Suggested questions -->
+  <div class="px-4 pb-2 flex flex-wrap gap-2">
+    <button onclick="askSuggested('What is a deepfake?')" class="text-[11px] px-3 py-1.5 rounded-full border border-white/10 text-slate-300 hover:border-primary hover:text-primary transition">What is a deepfake?</button>
+    <button onclick="askSuggested('How does NCII detection work?')" class="text-[11px] px-3 py-1.5 rounded-full border border-white/10 text-slate-300 hover:border-primary hover:text-primary transition">NCII detection?</button>
+    <button onclick="askSuggested('What does confidence score mean?')" class="text-[11px] px-3 py-1.5 rounded-full border border-white/10 text-slate-300 hover:border-primary hover:text-primary transition">Confidence score?</button>
+  </div>
+
+  <!-- Input -->
+  <form onsubmit="handleAssistantSubmit(event)" class="flex items-center gap-2 px-4 py-3 border-t border-white/10 bg-white/[0.02]">
+    <button type="button" onclick="startVoiceInput()" class="w-9 h-9 shrink-0 rounded-lg hover:bg-white/10 flex items-center justify-center text-slate-300">🎙️</button>
+    <input id="assistant-input" type="text" placeholder="Ask ARIA anything..." class="!py-2 !text-sm" autocomplete="off">
+    <button type="submit" class="w-9 h-9 shrink-0 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center text-[#04101a] font-bold">➤</button>
+  </form>
+</div>

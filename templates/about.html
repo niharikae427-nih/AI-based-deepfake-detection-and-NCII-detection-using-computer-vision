@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}About the Project — SENTRA AI{% endblock %}
+{% block content %}
+{% include "includes/public_nav.html" %}
+
+<section class="pt-40 pb-24 px-6">
+  <div class="max-w-4xl mx-auto text-center animate-fade-up">
+    <span class="badge badge-info mb-4">Academic Project</span>
+    <h1 class="font-display text-4xl font-bold">AI Based Deepfake And NCII Detection<br>Using Computer Vision</h1>
+    <p class="text-slate-400 mt-6 leading-relaxed">
+      This platform demonstrates a full-stack approach to combating synthetic media harm —
+      combining computer vision, deep learning, and a thoughtful user experience so that
+      detection results are not just accurate, but understandable and actionable for the
+      people who need them most.
+    </p>
+  </div>
+
+  <div class="max-w-5xl mx-auto grid sm:grid-cols-2 gap-6 mt-16">
+    {% set blocks = [
+      ("🎯", "Objective", "Build a unified platform capable of detecting deepfake images, videos, voices, and NCII content with explainable AI outputs."),
+      ("🧠", "Approach", "Combine CNN-based classifiers (EfficientNet, XceptionNet) for vision tasks and MFCC-based spectral models for audio, with a shared detection pipeline."),
+      ("🔐", "Ethics & Safety", "NCII previews are always blurred by default, and every flagged case links directly to reporting and victim-support resources."),
+      ("🚀", "Roadmap", "Swap dummy inference for trained TensorFlow/OpenCV/Librosa models, add perceptual hashing, and expand multi-language support."),
+    ] %}
+    {% for icon, title, desc in blocks %}
+    <div class="glass-card glass-card-hover animate-fade-up delay-{{ loop.index }}">
+      <div class="text-2xl mb-3">{{ icon }}</div>
+      <h3 class="font-display font-semibold">{{ title }}</h3>
+      <p class="text-sm text-slate-400 mt-2 leading-relaxed">{{ desc }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% include "includes/assistant.html" %}
+{% endblock %}

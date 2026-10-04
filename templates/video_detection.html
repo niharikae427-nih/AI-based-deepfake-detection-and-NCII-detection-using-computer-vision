@@ -1,0 +1,880 @@
+```html
+{% extends "app_base.html" %}
+{% set active = 'video' %}
+
+{% block title %}Video Detection — SENTRA AI{% endblock %}
+
+{% block app_content %}
+
+<div class="mb-8 animate-fade-up">
+    <span class="badge badge-info mb-3">Video Module</span>
+
+    <h1 class="font-display text-2xl sm:text-3xl font-bold">
+        Video Deepfake Detection
+    </h1>
+
+    <p class="text-slate-400 text-sm mt-1">
+        Upload an MP4, AVI, MOV, or MKV video for AI-based deepfake analysis.
+    </p>
+</div>
+
+
+<div class="grid lg:grid-cols-2 gap-6">
+
+    <!-- =========================
+         UPLOAD / ANALYSIS PANEL
+         ========================= -->
+
+    <div class="glass-card animate-fade-up">
+
+        <div
+            id="drop-zone"
+            class="dropzone p-10 text-center cursor-pointer"
+        >
+
+            <input
+                type="file"
+                id="file-input"
+                accept=".mp4,.avi,.mov,.mkv"
+                class="hidden"
+            >
+
+
+            <!-- Upload placeholder -->
+
+            <div id="upload-placeholder">
+
+                <div class="text-5xl mb-4">
+                    🎬
+                </div>
+
+                <h3 class="font-display text-lg font-semibold">
+                    Upload Video
+                </h3>
+
+                <p class="text-slate-400 text-sm mt-2">
+                    Drag & drop your video here or click to browse
+                </p>
+
+                <p class="text-slate-500 text-xs mt-3">
+                    MP4, AVI, MOV, MKV
+                </p>
+
+            </div>
+
+
+            <!-- Video preview -->
+
+            <div
+                id="preview-wrap"
+                class="hidden scan-frame rounded-xl overflow-hidden"
+            >
+
+                <video
+                    id="video-preview"
+                    class="w-full max-h-72 rounded-xl"
+                    controls
+                ></video>
+
+                <div
+                    id="scan-beam-el"
+                    class="scan-beam hidden"
+                ></div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Analyze button -->
+
+        <button
+            id="analyze-btn"
+            disabled
+            onclick="analyzeVideo()"
+            class="btn-primary w-full mt-5"
+        >
+            Analyze Video
+        </button>
+
+
+        <!-- Progress -->
+
+        <div
+            id="progress-wrap"
+            class="hidden mt-5"
+        >
+
+            <div class="flex justify-between text-xs mb-2">
+
+                <span class="text-slate-400">
+                    AI Analysis in progress...
+                </span>
+
+                <span
+                    id="progress-pct"
+                    class="text-slate-300"
+                >
+                    0%
+                </span>
+
+            </div>
+
+            <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+
+                <div
+                    id="progress-fill"
+                    class="h-full rounded-full transition-all duration-200"
+                    style="width:0%"
+                ></div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Frame strip -->
+
+        <div
+            id="frame-strip"
+            class="hidden mt-6"
+        >
+
+            <p class="text-xs text-slate-400 mb-2">
+                Analyzed Video Frames
+            </p>
+
+            <div
+                id="frame-track"
+                class="flex gap-2 overflow-hidden"
+            ></div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         RESULTS PANEL
+         ========================= -->
+
+    <div
+        id="results-panel"
+        class="hidden glass-card animate-fade-up delay-1"
+    >
+
+        <div class="flex items-center justify-between mb-6">
+
+            <h2 class="font-display text-xl font-semibold">
+                Analysis Result
+            </h2>
+
+            <span
+                id="result-badge"
+                class="badge"
+            >
+                --
+            </span>
+
+        </div>
+
+
+        <!-- Confidence -->
+
+        <div class="text-center mb-7">
+
+            <p class="text-xs uppercase tracking-wider text-slate-500 mb-2">
+                Confidence
+            </p>
+
+            <p
+                id="result-confidence"
+                class="text-5xl font-display font-bold confidence-mono"
+            >
+                --%
+            </p>
+
+            <div class="w-full h-2 bg-white/10 rounded-full mt-4 overflow-hidden">
+
+                <div
+                    id="confidence-bar"
+                    class="h-full rounded-full transition-all duration-500"
+                    style="width:0%"
+                ></div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Result information -->
+
+        <div class="space-y-4">
+
+            <div class="flex justify-between gap-4">
+
+                <span class="text-slate-400">
+                    Frames analyzed
+                </span>
+
+                <span
+                    id="result-frames"
+                    class="font-semibold"
+                >
+                    --
+                </span>
+
+            </div>
+
+
+            <div class="flex justify-between gap-4">
+
+                <span class="text-slate-400">
+                    Unsafe frames
+                </span>
+
+                <span
+                    id="result-unsafe-count"
+                    class="font-semibold"
+                >
+                    N/A
+                </span>
+
+            </div>
+
+
+            <div>
+
+                <p class="text-slate-400 text-sm mb-1">
+                    AI Explanation
+                </p>
+
+                <p
+                    id="result-explanation"
+                    class="text-sm leading-6"
+                >
+                    --
+                </p>
+
+            </div>
+
+
+            <div>
+
+                <p class="text-slate-400 text-sm mb-1">
+                    Recommendation
+                </p>
+
+                <p
+                    id="result-recommendation"
+                    class="text-sm leading-6"
+                >
+                    --
+                </p>
+
+            </div>
+
+
+            <div class="flex justify-between gap-4">
+
+                <span class="text-slate-400">
+                    AI Model
+                </span>
+
+                <span
+                    id="result-model"
+                    class="font-semibold text-right text-sm"
+                >
+                    --
+                </span>
+
+            </div>
+
+
+            <div class="flex justify-between gap-4">
+
+                <span class="text-slate-400">
+                    Processing time
+                </span>
+
+                <span
+                    id="result-time"
+                    class="font-semibold"
+                >
+                    --
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- Reports -->
+
+        <div class="mt-7">
+
+            <a
+                href="{{ url_for('reports') }}"
+                class="btn-secondary w-full block text-center"
+            >
+                View / Download Report
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         EMPTY RESULTS
+         ========================= -->
+
+    <div
+        id="empty-results"
+        class="glass-card animate-fade-up delay-1"
+    >
+
+        <div class="text-center py-12">
+
+            <div class="text-5xl mb-4">
+                🛡️
+            </div>
+
+            <h3 class="font-display text-lg font-semibold">
+                Ready for Video Analysis
+            </h3>
+
+            <p class="text-slate-400 text-sm mt-2 max-w-md mx-auto">
+                Upload a video to analyze a sequence of frames
+                using the trained CNN-LSTM deepfake detection model.
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_scripts %}
+
+<script>
+
+let selectedFile = null;
+
+
+/* =========================================
+   FILE SELECTION
+   ========================================= */
+
+if (typeof initDropzone === "function") {
+
+    initDropzone({
+
+        zoneId: "drop-zone",
+
+        inputId: "file-input",
+
+        previewId: "preview-wrap",
+
+        onFile: function(file) {
+
+            selectedFile = file;
+
+            const placeholder =
+                document.getElementById("upload-placeholder");
+
+            const preview =
+                document.getElementById("preview-wrap");
+
+            const video =
+                document.getElementById("video-preview");
+
+            const button =
+                document.getElementById("analyze-btn");
+
+
+            if (placeholder) {
+                placeholder.classList.add("hidden");
+            }
+
+            if (preview) {
+                preview.classList.remove("hidden");
+            }
+
+            if (video) {
+                video.src = URL.createObjectURL(file);
+            }
+
+            if (button) {
+                button.disabled = false;
+            }
+        }
+    });
+
+}
+
+
+/* =========================================
+   FALLBACK FILE CLICK HANDLER
+   ========================================= */
+
+const dropZone =
+    document.getElementById("drop-zone");
+
+const fileInput =
+    document.getElementById("file-input");
+
+
+if (dropZone && fileInput) {
+
+    dropZone.addEventListener("click", function(event) {
+
+        if (event.target.closest("#video-preview")) {
+            return;
+        }
+
+        fileInput.click();
+
+    });
+
+
+    fileInput.addEventListener("change", function() {
+
+        if (this.files && this.files.length > 0) {
+
+            const file = this.files[0];
+
+            selectedFile = file;
+
+
+            document
+                .getElementById("upload-placeholder")
+                .classList.add("hidden");
+
+
+            document
+                .getElementById("preview-wrap")
+                .classList.remove("hidden");
+
+
+            document
+                .getElementById("video-preview")
+                .src = URL.createObjectURL(file);
+
+
+            document
+                .getElementById("analyze-btn")
+                .disabled = false;
+        }
+
+    });
+
+}
+
+
+/* =========================================
+   FAKE PROGRESS UI
+   ========================================= */
+
+function fakeProgress(onDone) {
+
+    const wrap =
+        document.getElementById("progress-wrap");
+
+    const fill =
+        document.getElementById("progress-fill");
+
+    const pct =
+        document.getElementById("progress-pct");
+
+    const beam =
+        document.getElementById("scan-beam-el");
+
+
+    if (wrap) {
+        wrap.classList.remove("hidden");
+    }
+
+    if (beam) {
+        beam.classList.remove("hidden");
+    }
+
+
+    let progress = 0;
+
+
+    const timer = setInterval(function() {
+
+        progress += Math.random() * 12;
+
+
+        if (progress >= 100) {
+
+            progress = 100;
+
+            clearInterval(timer);
+
+
+            setTimeout(function() {
+
+                onDone();
+
+            }, 300);
+
+        }
+
+
+        if (fill) {
+            fill.style.width = progress + "%";
+        }
+
+        if (pct) {
+            pct.textContent =
+                Math.floor(progress) + "%";
+        }
+
+    }, 250);
+
+}
+
+
+/* =========================================
+   VIDEO ANALYSIS
+   ========================================= */
+
+async function analyzeVideo() {
+
+    if (!selectedFile) {
+
+        alert("Please select a video first.");
+
+        return;
+    }
+
+
+    const button =
+        document.getElementById("analyze-btn");
+
+
+    if (button) {
+        button.disabled = true;
+    }
+
+
+    document
+        .getElementById("results-panel")
+        .classList.add("hidden");
+
+
+    document
+        .getElementById("empty-results")
+        .classList.add("hidden");
+
+
+    const formData =
+        new FormData();
+
+
+    formData.append(
+        "file",
+        selectedFile
+    );
+
+
+    fakeProgress(async function() {
+
+        const startTime =
+            performance.now();
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "/api/detect/video",
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
+
+
+            /* HTTP error */
+
+            if (!response.ok) {
+
+                const errorText =
+                    await response.text();
+
+
+                console.error(
+                    "VIDEO API ERROR:",
+                    response.status,
+                    errorText
+                );
+
+
+                alert(
+                    "Video analysis failed. HTTP " +
+                    response.status
+                );
+
+
+                return;
+            }
+
+
+            const data =
+                await response.json();
+
+
+            console.log(
+                "VIDEO API RESPONSE:",
+                data
+            );
+
+
+            if (data.error) {
+
+                alert(
+                    data.details
+                        ? data.error + ": " + data.details
+                        : data.error
+                );
+
+                return;
+            }
+
+
+            /* Frontend processing time */
+
+            data.processing_time_ms =
+                Math.round(
+                    performance.now() - startTime
+                );
+
+
+            renderResult(data);
+
+
+        } catch (error) {
+
+            console.error(
+                "VIDEO ANALYSIS ERROR:",
+                error
+            );
+
+
+            alert(
+                "Video analysis failed: " +
+                (error.message || error)
+            );
+
+        } finally {
+
+            if (button) {
+                button.disabled = false;
+            }
+
+        }
+
+    });
+
+}
+
+
+/* =========================================
+   RENDER RESULT
+   ========================================= */
+
+function renderResult(data) {
+
+    document
+        .getElementById("progress-wrap")
+        .classList.add("hidden");
+
+
+    document
+        .getElementById("scan-beam-el")
+        .classList.add("hidden");
+
+
+    document
+        .getElementById("results-panel")
+        .classList.remove("hidden");
+
+
+    /* Prediction */
+
+    const prediction =
+        String(data.prediction || "UNKNOWN");
+
+
+    const badge =
+        document.getElementById("result-badge");
+
+
+    badge.textContent =
+        prediction;
+
+
+    const isFake =
+        prediction === "DEEPFAKE" ||
+        prediction === "Fake";
+
+
+    badge.className =
+        "badge " +
+        (isFake
+            ? "badge-danger"
+            : "badge-success");
+
+
+    /* Confidence */
+
+    const confidence =
+        Number(data.confidence || 0);
+
+
+    const confidenceElement =
+        document.getElementById(
+            "result-confidence"
+        );
+
+
+    confidenceElement.textContent =
+        confidence.toFixed(2) + "%";
+
+
+    confidenceElement.className =
+        "text-5xl font-display font-bold confidence-mono " +
+        (isFake
+            ? "text-danger"
+            : "text-success");
+
+
+    document
+        .getElementById("confidence-bar")
+        .style.width =
+        Math.min(
+            Math.max(confidence, 0),
+            100
+        ) + "%";
+
+
+    /* Frames */
+
+    const framesAnalyzed =
+        Number(data.frames_analyzed || 0);
+
+
+    document
+        .getElementById("result-frames")
+        .textContent =
+        framesAnalyzed;
+
+
+    /* Unsafe frames */
+
+    document
+        .getElementById("result-unsafe-count")
+        .textContent =
+        "N/A";
+
+
+    /* Explanation */
+
+    document
+        .getElementById("result-explanation")
+        .textContent =
+        data.explanation ||
+        "No explanation available.";
+
+
+    /* Recommendation */
+
+    document
+        .getElementById("result-recommendation")
+        .textContent =
+        data.recommendation ||
+        "Verify the original source of the video.";
+
+
+    /* Model */
+
+    document
+        .getElementById("result-model")
+        .textContent =
+        data.model_used ||
+        "CNN-LSTM Video Model";
+
+
+    /* Processing time */
+
+    document
+        .getElementById("result-time")
+        .textContent =
+        (data.processing_time_ms || 0) +
+        " ms";
+
+
+    /* Frame timeline */
+
+    const strip =
+        document.getElementById("frame-strip");
+
+
+    const track =
+        document.getElementById("frame-track");
+
+
+    if (!strip || !track) {
+        return;
+    }
+
+
+    track.innerHTML = "";
+
+
+    strip.classList.remove("hidden");
+
+
+    const count =
+        Math.max(
+            framesAnalyzed,
+            1
+        );
+
+
+    for (
+        let i = 0;
+        i < count;
+        i++
+    ) {
+
+        const frame =
+            document.createElement("div");
+
+
+        frame.className =
+            "w-6 h-9 rounded shrink-0 bg-white/10";
+
+
+        frame.title =
+            "Analyzed Frame " +
+            (i + 1);
+
+
+        track.appendChild(frame);
+
+    }
+
+}
+
+</script>
+
+{% endblock %}
+```

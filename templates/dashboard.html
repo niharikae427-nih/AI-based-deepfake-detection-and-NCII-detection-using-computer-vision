@@ -1,0 +1,134 @@
+{% extends "app_base.html" %}
+{% set active = 'dashboard' %}
+{% block title %}Dashboard — SENTRA AI{% endblock %}
+{% block app_content %}
+
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 animate-fade-up">
+  <div>
+    <h1 class="font-display text-2xl sm:text-3xl font-bold">Welcome back, {{ logged_in_user['name'].split(' ')[0] if logged_in_user else 'Analyst' }} 👋</h1>
+    <p class="text-slate-400 text-sm mt-1">Here's what's happening across your detection modules today.</p>
+  </div>
+  <div class="flex gap-3">
+    <a href="{{ url_for('image_detection_page') }}" class="btn-primary ripple text-sm !py-2.5">+ New Scan</a>
+  </div>
+</div>
+
+<!-- Stat cards -->
+<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+  {% set cards = [
+    ("Total Scans", total_scans, "📊", "primary"),
+    ("Image Analysis", image_scans, "🖼️", "secondary"),
+    ("Video Analysis", video_scans, "🎬", "accent"),
+    ("Audio Analysis", audio_scans, "🎙️", "primary"),
+    ("Deepfake Detected", fake_detected, "🎭", "danger"),
+    ("NCII Detected", ncii_detected, "🔒", "danger"),
+    ("Today's Activity", today_activity, "⚡", "secondary"),
+    ("Accuracy", avg_confidence, "🎯", "success"),
+  ] %}
+  {% for label, value, icon, color in cards %}
+  <div class="glass-card glass-card-hover animate-fade-up delay-{{ (loop.index % 5) + 1 }}">
+    <div class="flex items-center justify-between mb-4">
+      <div class="w-10 h-10 rounded-xl bg-{{ color }}/10 border border-{{ color }}/30 flex items-center justify-center text-lg">{{ icon }}</div>
+    </div>
+    <p class="font-display text-2xl font-bold confidence-mono">{{ value }}{% if label == 'Accuracy' %}%{% endif %}</p>
+    <p class="text-xs text-slate-400 mt-1">{{ label }}</p>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Charts -->
+<div class="grid lg:grid-cols-3 gap-6 mb-8">
+  <div class="lg:col-span-2 glass-card animate-fade-up">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-display font-semibold">Detection Trend — Last 7 Days</h3>
+      <span class="badge badge-info">Weekly</span>
+    </div>
+    <canvas id="trendChart" height="110"></canvas>
+  </div>
+  <div class="glass-card animate-fade-up delay-1">
+    <h3 class="font-display font-semibold mb-4">Scan Distribution</h3>
+    <canvas id="pieChart" height="180"></canvas>
+  </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="glass-card animate-fade-up delay-2">
+  <div class="flex items-center justify-between mb-5">
+    <h3 class="font-display font-semibold">Recent Activity</h3>
+    <a href="{{ url_for('history') }}" class="text-xs text-primary hover:underline">View all</a>
+  </div>
+
+  {% if recent %}
+  <div class="space-y-4">
+    {% for scan in recent %}
+    <div class="flex items-center gap-4 pb-4 {% if not loop.last %}border-b border-white/5{% endif %}">
+      <div class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-lg shrink-0">
+        {% if scan['file_type'] == 'image' %}🖼️{% elif scan['file_type'] == 'video' %}🎬{% elif scan['file_type'] == 'audio' %}🎙️{% else %}🔒{% endif %}
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-medium truncate">{{ scan['file_name'] }}</p>
+        <p class="text-xs text-slate-500">{{ scan['created_at'][:19].replace('T', ' ') }}</p>
+      </div>
+      <div class="text-right shrink-0">
+        <span class="badge {% if scan['prediction'] in ['Fake','Unsafe','Potential NCII'] %}badge-danger{% else %}badge-success{% endif %}">{{ scan['prediction'] }}</span>
+        <p class="text-xs text-slate-500 mt-1 confidence-mono">{{ scan['confidence'] }}%</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-12">
+    <p class="text-4xl mb-3">🗂️</p>
+    <p class="text-slate-400 text-sm">No scans yet — upload a file to get started.</p>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+const trendCtx = document.getElementById('trendChart');
+new Chart(trendCtx, {
+  type: 'line',
+  data: {
+    labels: {{ weekly_labels | tojson }},
+    datasets: [{
+      label: 'Scans',
+      data: {{ weekly_counts | tojson }},
+      borderColor: '#06B6D4',
+      backgroundColor: 'rgba(6,182,212,0.15)',
+      fill: true,
+      tension: 0.4,
+      pointBackgroundColor: '#8B5CF6',
+      pointRadius: 4,
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: 'rgba(148,163,184,0.08)' }, ticks: { color: '#94A3B8' } },
+      y: { grid: { color: 'rgba(148,163,184,0.08)' }, ticks: { color: '#94A3B8' }, beginAtZero: true }
+    }
+  }
+});
+
+const pieCtx = document.getElementById('pieChart');
+new Chart(pieCtx, {
+  type: 'doughnut',
+  data: {
+    labels: ['Image', 'Video', 'Audio', 'Other/NCII'],
+    datasets: [{
+      data: {{ pie_data | tojson }},
+      backgroundColor: ['#06B6D4', '#8B5CF6', '#2563EB', '#EF4444'],
+      borderColor: '#020617',
+      borderWidth: 3,
+    }]
+  },
+  options: {
+    plugins: { legend: { position: 'bottom', labels: { color: '#94A3B8', boxWidth: 10, font: { size: 11 } } } }
+  }
+});
+</script>
+{% endblock %}

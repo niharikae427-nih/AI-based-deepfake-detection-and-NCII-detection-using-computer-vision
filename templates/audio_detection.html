@@ -1,0 +1,176 @@
+{% extends "app_base.html" %}
+{% set active = 'audio' %}
+{% block title %}Audio Detection — SENTRA AI{% endblock %}
+{% block app_content %}
+
+<div class="mb-8 animate-fade-up">
+  <span class="badge badge-info mb-3">Audio Module</span>
+  <h1 class="font-display text-2xl sm:text-3xl font-bold">Voice Deepfake Detection</h1>
+  <p class="text-slate-400 text-sm mt-1">Upload a WAV or MP3 file to check for synthetic or cloned voice patterns.</p>
+</div>
+
+<div class="grid lg:grid-cols-2 gap-6">
+  <div class="glass-card animate-fade-up">
+    <div id="drop-zone" class="dropzone p-10 text-center cursor-pointer">
+      <input type="file" id="file-input" accept=".wav,.mp3" class="hidden">
+      <div id="upload-placeholder">
+        <div class="text-5xl mb-4">🎙️</div>
+        <p class="font-medium">Drag &amp; drop your audio file here</p>
+        <p class="text-xs text-slate-500 mt-1">or click to browse · WAV, MP3</p>
+      </div>
+      <div id="preview-wrap" class="hidden">
+        <audio id="audio-preview" class="w-full mt-2" controls></audio>
+        <p id="file-name-label" class="text-xs text-slate-500 mt-3"></p>
+      </div>
+    </div>
+
+    <div id="waveform-wrap" class="hidden mt-5 scan-frame rounded-xl bg-white/5 p-4">
+      <canvas id="waveform-canvas" height="90"></canvas>
+      <div id="scan-beam-el" class="scan-beam hidden"></div>
+    </div>
+
+    <button id="analyze-btn" disabled onclick="analyzeAudio()" class="btn-primary ripple w-full mt-6 font-semibold disabled:opacity-40 disabled:cursor-not-allowed">
+      Analyze Audio
+    </button>
+
+    <div id="progress-wrap" class="hidden mt-5">
+      <div class="flex justify-between text-xs text-slate-400 mb-2">
+        <span id="progress-label">Extracting MFCC features &amp; voice spectrum…</span>
+        <span id="progress-pct">0%</span>
+      </div>
+      <div class="progress-track"><div id="progress-fill" class="progress-fill" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <div id="results-panel" class="hidden glass-card animate-fade-up delay-1">
+    <div class="flex items-center justify-between mb-6">
+      <h3 class="font-display font-semibold">Analysis Result</h3>
+      <span id="result-badge" class="badge"></span>
+    </div>
+
+    <div class="text-center mb-6">
+      <p class="text-5xl font-display font-bold confidence-mono" id="result-confidence">--%</p>
+      <p class="text-xs text-slate-500 mt-1">Confidence Score</p>
+    </div>
+    <div class="progress-track mb-6"><div id="confidence-bar" class="progress-fill" style="width:0%"></div></div>
+
+    <div class="mb-4">
+      <p class="text-xs text-slate-500 mb-1">AI Explanation</p>
+      <p id="result-explanation" class="text-sm text-slate-300 leading-relaxed"></p>
+    </div>
+    <div class="mb-6">
+      <p class="text-xs text-slate-500 mb-1">Recommendation</p>
+      <p id="result-recommendation" class="text-sm text-slate-300 leading-relaxed"></p>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4 text-xs mb-6">
+      <div class="bg-white/5 rounded-xl p-3"><p class="text-slate-500">Model Used</p><p id="result-model" class="font-medium mt-1"></p></div>
+      <div class="bg-white/5 rounded-xl p-3"><p class="text-slate-500">Processing Time</p><p id="result-time" class="font-medium mt-1"></p></div>
+    </div>
+
+    <a href="{{ url_for('reports') }}" class="btn-outline ripple w-full text-center font-semibold block">Download Report</a>
+  </div>
+
+  <div id="empty-results" class="glass-card flex items-center justify-center text-center animate-fade-up delay-1">
+    <div>
+      <div class="text-5xl mb-4 opacity-50">🌊</div>
+      <p class="text-slate-400 text-sm">Upload and analyze an audio file to see the voice spectrum results here.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let selectedFile = null;
+
+initDropzone({
+  zoneId: 'drop-zone', inputId: 'file-input', previewId: 'preview-wrap',
+  onFile: (file) => {
+    selectedFile = file;
+    document.getElementById('upload-placeholder').classList.add('hidden');
+    document.getElementById('preview-wrap').classList.remove('hidden');
+    document.getElementById('audio-preview').src = URL.createObjectURL(file);
+    document.getElementById('file-name-label').textContent = file.name + ' · ' + (file.size / 1024).toFixed(1) + ' KB';
+    document.getElementById('waveform-wrap').classList.remove('hidden');
+    drawStaticWaveform();
+    document.getElementById('analyze-btn').disabled = false;
+  }
+});
+
+function drawStaticWaveform(data) {
+  const canvas = document.getElementById('waveform-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.offsetWidth;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const samples = data || Array.from({length: 80}, () => (Math.random() * 2 - 1));
+  const barWidth = canvas.width / samples.length;
+  const mid = canvas.height / 2;
+  const grad = ctx.createLinearGradient(0, 0, canvas.width, 0);
+  grad.addColorStop(0, '#06B6D4');
+  grad.addColorStop(1, '#8B5CF6');
+  ctx.fillStyle = grad;
+  samples.forEach((v, i) => {
+    const h = Math.abs(v) * mid * 0.9;
+    ctx.fillRect(i * barWidth, mid - h, barWidth * 0.6, h * 2);
+  });
+}
+
+function fakeProgress(onDone) {
+  const wrap = document.getElementById('progress-wrap');
+  const fill = document.getElementById('progress-fill');
+  const pct = document.getElementById('progress-pct');
+  const beam = document.getElementById('scan-beam-el');
+  wrap.classList.remove('hidden');
+  beam.classList.remove('hidden');
+  let p = 0;
+  const timer = setInterval(() => {
+    p += Math.random() * 20;
+    if (p >= 100) { p = 100; clearInterval(timer); onDone(); }
+    fill.style.width = p + '%';
+    pct.textContent = Math.floor(p) + '%';
+  }, 200);
+}
+
+async function analyzeAudio() {
+  if (!selectedFile) return;
+  document.getElementById('analyze-btn').disabled = true;
+  document.getElementById('results-panel').classList.add('hidden');
+  document.getElementById('empty-results').classList.add('hidden');
+
+  const formData = new FormData();
+  formData.append('file', selectedFile);
+
+  fakeProgress(async () => {
+    try {
+      const res = await fetch('/api/detect/audio', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.error) { alert(data.error); document.getElementById('analyze-btn').disabled = false; return; }
+      renderResult(data);
+    } catch (e) {
+      alert('Something went wrong analyzing the audio.');
+    }
+    document.getElementById('analyze-btn').disabled = false;
+  });
+}
+
+function renderResult(data) {
+  document.getElementById('progress-wrap').classList.add('hidden');
+  document.getElementById('scan-beam-el').classList.add('hidden');
+  document.getElementById('results-panel').classList.remove('hidden');
+  drawStaticWaveform(data.waveform);
+
+  const badge = document.getElementById('result-badge');
+  badge.textContent = data.prediction;
+  badge.className = 'badge ' + (data.prediction === 'Fake' ? 'badge-danger' : 'badge-success');
+
+  document.getElementById('result-confidence').textContent = data.confidence + '%';
+  document.getElementById('result-confidence').className = 'text-5xl font-display font-bold confidence-mono ' + (data.prediction === 'Fake' ? 'text-danger' : 'text-success');
+  document.getElementById('confidence-bar').style.width = data.confidence + '%';
+  document.getElementById('result-explanation').textContent = data.explanation;
+  document.getElementById('result-recommendation').textContent = data.recommendation;
+  document.getElementById('result-model').textContent = data.model_used;
+  document.getElementById('result-time').textContent = data.processing_time_ms + ' ms';
+}
+</script>
+{% endblock %}

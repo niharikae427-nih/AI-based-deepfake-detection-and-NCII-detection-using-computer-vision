@@ -1,0 +1,74 @@
+{% extends "app_base.html" %}
+{% set active = 'reports' %}
+{% block title %}Report #{{ scan['id'] }} — SENTRA AI{% endblock %}
+{% block app_content %}
+
+<div class="flex items-center justify-between mb-8 animate-fade-up">
+  <div>
+    <h1 class="font-display text-2xl sm:text-3xl font-bold">Detection Report</h1>
+    <p class="text-slate-400 text-sm mt-1">Report ID #{{ scan['id'] }}</p>
+  </div>
+  <button onclick="window.print()" class="btn-primary ripple text-sm !py-2.5">⬇ Download / Print PDF</button>
+</div>
+
+<div id="report-card" class="glass-card animate-fade-up delay-1 max-w-3xl">
+  <div class="flex items-center gap-3 mb-8 pb-6 border-b border-white/10">
+    <div class="w-10 h-10 scan-ring bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-lg">🛡️</div>
+    <div>
+      <p class="font-display font-bold">SENTRA AI</p>
+      <p class="text-[11px] text-slate-400">Deepfake &amp; NCII Detection Report</p>
+    </div>
+  </div>
+
+  <div class="grid sm:grid-cols-2 gap-6 mb-8">
+    <div>
+      <p class="text-xs text-slate-500">File Name</p>
+      <p class="font-medium mt-1">{{ scan['file_name'] }}</p>
+    </div>
+    <div>
+      <p class="text-xs text-slate-500">File Type</p>
+      <p class="font-medium mt-1 capitalize">{{ scan['file_type'] }}</p>
+    </div>
+    <div>
+      <p class="text-xs text-slate-500">Prediction</p>
+      <span class="badge {% if scan['prediction'] in ['Fake','Unsafe','Potential NCII'] %}badge-danger{% else %}badge-success{% endif %} mt-1 inline-block">{{ scan['prediction'] }}</span>
+    </div>
+    <div>
+      <p class="text-xs text-slate-500">Confidence Score</p>
+      <p class="font-medium mt-1 confidence-mono">{{ scan['confidence'] }}%</p>
+    </div>
+    <div>
+      <p class="text-xs text-slate-500">Risk Level</p>
+      <p class="font-medium mt-1">{{ scan['risk_level'] }}</p>
+    </div>
+    <div>
+      <p class="text-xs text-slate-500">Detection Time</p>
+      <p class="font-medium mt-1">{{ scan['created_at'][:19].replace('T',' ') }}</p>
+    </div>
+    <div class="sm:col-span-2">
+      <p class="text-xs text-slate-500">Model Used</p>
+      <p class="font-medium mt-1">{{ scan['model_used'] }}</p>
+    </div>
+  </div>
+
+  <div class="mb-6">
+    <p class="text-xs text-slate-500 mb-1">AI Explanation</p>
+    <p class="text-sm text-slate-300 leading-relaxed">{{ scan['explanation'] }}</p>
+  </div>
+  <div class="mb-2">
+    <p class="text-xs text-slate-500 mb-1">Recommendation</p>
+    <p class="text-sm text-slate-300 leading-relaxed">{{ scan['recommendation'] }}</p>
+  </div>
+
+  <p class="text-[10px] text-slate-500 mt-8 pt-6 border-t border-white/10">
+    This report was generated automatically by SENTRA AI's detection pipeline for academic
+   demonstration purposes. Results are generated using the integrated Custom Deepfake CNN (224x224) trained image classification model. For important or sensitive content, results should be independently verified.
+  </p>
+</div>
+
+<style media="print">
+  body * { visibility: hidden; }
+  #report-card, #report-card * { visibility: visible; }
+  #report-card { position: absolute; top: 0; left: 0; width: 100%; background: white !important; color: black !important; }
+</style>
+{% endblock %}

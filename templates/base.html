@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}SENTRA AI — Deepfake &amp; NCII Detection{% endblock %}</title>
+<meta name="description" content="AI Based Deepfake And NCII Detection Using Computer Vision">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: '#06B6D4',
+          secondary: '#8B5CF6',
+          accent: '#2563EB',
+          bgdeep: '#020617',
+          success: '#22C55E',
+          danger: '#EF4444',
+          txt: '#F8FAFC',
+        },
+        fontFamily: {
+          display: ['"Space Grotesk"', 'sans-serif'],
+          body: ['"Inter"', 'sans-serif'],
+          mono: ['"JetBrains Mono"', 'monospace'],
+        },
+      }
+    }
+  }
+</script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+{% block extra_head %}{% endblock %}
+</head>
+<body class="bg-bgdeep text-txt font-body antialiased">
+
+<!-- Ambient background grid + glow orbs -->
+<div class="fixed inset-0 -z-10 overflow-hidden">
+  <div class="absolute inset-0 bg-grid"></div>
+  <div class="orb orb-cyan" style="top:-10%; left:-8%;"></div>
+  <div class="orb orb-violet" style="bottom:-15%; right:-10%;"></div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div id="toast-stack" class="fixed top-5 right-5 z-[9999] flex flex-col gap-3 max-w-sm w-full px-4 sm:px-0">
+      {% for category, message in messages %}
+        <div class="toast glass-card !p-4 flex items-start gap-3 border-l-4
+          {% if category == 'success' %} border-success
+          {% elif category == 'danger' %} border-danger
+          {% elif category == 'warning' %} border-yellow-400
+          {% else %} border-primary {% endif %}">
+          <span class="mt-0.5">
+            {% if category == 'success' %}✅{% elif category == 'danger' %}⚠️{% elif category == 'warning' %}🔔{% else %}ℹ️{% endif %}
+          </span>
+          <p class="text-sm text-slate-200">{{ message }}</p>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+{% block content %}{% endblock %}
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

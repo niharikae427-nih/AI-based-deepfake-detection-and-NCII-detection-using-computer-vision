@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}QR Login — SENTRA AI{% endblock %}
+{% block content %}
+<div class="min-h-screen flex items-center justify-center px-6 py-16">
+  <div class="w-full max-w-md glass-card ring-glow animate-fade-up text-center">
+    <h1 class="font-display text-2xl font-bold">Scan to log in</h1>
+    <p class="text-slate-400 text-sm mt-2">Scan this code with the SENTRA AI mobile app to sign in instantly.</p>
+
+    <div class="relative w-56 h-56 mx-auto my-8 rounded-2xl bg-white p-3 scan-frame">
+      <div id="qr-canvas" class="w-full h-full flex items-center justify-center"></div>
+      <div id="qr-scan-beam" class="scan-beam"></div>
+      <div id="qr-expired-overlay" class="hidden absolute inset-0 bg-black/80 rounded-2xl flex items-center justify-center flex-col gap-2">
+        <p class="text-white text-sm">QR code expired</p>
+        <button onclick="createQrSession()" class="btn-primary ripple !py-2 !px-4 text-xs">Generate New Code</button>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-center gap-2 text-sm text-slate-400 mb-2">
+      <span id="qr-status-dot" class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+      <span id="qr-status-text">Waiting for scan…</span>
+    </div>
+    <p class="text-xs text-slate-500">Expires in <span id="qr-countdown" class="confidence-mono text-primary">60</span>s</p>
+
+    <!-- Demo helper (simulates a phone scanning, since no second device is available) -->
+    <div class="mt-8 pt-6 border-t border-white/10">
+      <p class="text-[11px] text-slate-500 mb-3">Demo helper — simulates a mobile scan:</p>
+      <button onclick="simulateScan()" class="btn-outline ripple !py-2 text-xs w-full">Simulate QR Scan on Phone</button>
+    </div>
+
+    <p class="text-sm text-slate-400 mt-6">
+      <a href="{{ url_for('login') }}" class="text-primary hover:underline">← Back to standard login</a>
+    </p>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+let currentQrId = null;
+let countdownTimer = null;
+let pollTimer = null;
+
+async function createQrSession() {
+  clearInterval(countdownTimer);
+  clearInterval(pollTimer);
+  document.getElementById('qr-expired-overlay').classList.add('hidden');
+  document.getElementById('qr-status-text').textContent = 'Waiting for scan…';
+
+  const res = await fetch('/api/qr/create', { method: 'POST' });
+  const data = await res.json();
+  currentQrId = data.qr_id;
+
+  const canvas = document.getElementById('qr-canvas');
+  canvas.innerHTML = '';
+  new QRCode(canvas, {
+    text: `sentra-ai-login://${currentQrId}`,
+    width: 190, height: 190,
+    colorDark: '#020617', colorLight: '#ffffff'
+  });
+
+  let seconds = data.expires_in;
+  document.getElementById('qr-countdown').textContent = seconds;
+  countdownTimer = setInterval(() => {
+    seconds--;
+    document.getElementById('qr-countdown').textContent = seconds;
+    if (seconds <= 0) {
+      clearInterval(countdownTimer);
+      clearInterval(pollTimer);
+      document.getElementById('qr-expired-overlay').classList.remove('hidden');
+    }
+  }, 1000);
+
+  pollTimer = setInterval(pollQrStatus, 1500);
+}
+
+async function pollQrStatus() {
+  if (!currentQrId) return;
+  const res = await fetch(`/api/qr/status/${currentQrId}`);
+  if (!res.ok) return;
+  const data = await res.json();
+  const statusText = document.getElementById('qr-status-text');
+
+  if (data.status === 'scanned') {
+    statusText.textContent = 'QR Scanned — authenticating…';
+    await fetch(`/api/qr/simulate-auth/${currentQrId}`, { method: 'POST' });
+  } else if (data.status === 'authenticated') {
+    statusText.textContent = 'Login successful! Redirecting…';
+    clearInterval(pollTimer);
+    clearInterval(countdownTimer);
+    const complete = await fetch(`/api/qr/complete/${currentQrId}`, { method: 'POST' });
+    const completeData = await complete.json();
+    if (completeData.ok) {
+      window.location.href = completeData.redirect;
+    }
+  }
+}
+
+async function simulateScan() {
+  if (!currentQrId) return;
+  document.getElementById('qr-status-text').textContent = 'QR Scanned — waiting for confirmation…';
+  await fetch(`/api/qr/simulate-scan/${currentQrId}`, { method: 'POST' });
+}
+
+createQrSession();
+</script>
+{% endblock %}

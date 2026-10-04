@@ -1,0 +1,346 @@
+```html
+<script>
+
+let selectedFile = null;
+
+initDropzone({
+    zoneId: 'drop-zone',
+    inputId: 'file-input',
+    previewId: 'preview-wrap',
+
+    onFile: (file) => {
+
+        selectedFile = file;
+
+        document.getElementById('upload-placeholder')
+            .classList.add('hidden');
+
+        document.getElementById('preview-wrap')
+            .classList.remove('hidden');
+
+        document.getElementById('video-preview').src =
+            URL.createObjectURL(file);
+
+        document.getElementById('analyze-btn').disabled = false;
+    }
+});
+
+
+function fakeProgress(onDone) {
+
+    const wrap = document.getElementById('progress-wrap');
+    const fill = document.getElementById('progress-fill');
+    const pct = document.getElementById('progress-pct');
+    const beam = document.getElementById('scan-beam-el');
+
+    wrap.classList.remove('hidden');
+    beam.classList.remove('hidden');
+
+    let p = 0;
+
+    const timer = setInterval(() => {
+
+        p += Math.random() * 14;
+
+        if (p >= 100) {
+
+            p = 100;
+
+            clearInterval(timer);
+
+            setTimeout(() => {
+                onDone();
+            }, 300);
+        }
+
+        fill.style.width = p + '%';
+        pct.textContent = Math.floor(p) + '%';
+
+    }, 260);
+}
+
+
+async function analyzeVideo() {
+
+    if (!selectedFile) {
+        return;
+    }
+
+    const analyzeBtn =
+        document.getElementById('analyze-btn');
+
+    analyzeBtn.disabled = true;
+
+    document.getElementById('results-panel')
+        .classList.add('hidden');
+
+    document.getElementById('empty-results')
+        .classList.add('hidden');
+
+    const formData = new FormData();
+
+    formData.append('file', selectedFile);
+
+
+    fakeProgress(async () => {
+
+        const startTime = performance.now();
+
+        try {
+
+            const res = await fetch(
+                '/api/detect/video',
+                {
+                    method: 'POST',
+                    body: formData
+                }
+            );
+
+
+            /*
+             * Check HTTP response before parsing.
+             */
+            if (!res.ok) {
+
+                const errorText = await res.text();
+
+                console.error(
+                    'Video API Error:',
+                    res.status,
+                    errorText
+                );
+
+                alert(
+                    'Video analysis failed. Server returned HTTP ' +
+                    res.status
+                );
+
+                return;
+            }
+
+
+            const data = await res.json();
+
+
+            console.log(
+                'Video API Response:',
+                data
+            );
+
+
+            if (data.error) {
+
+                console.error(
+                    'Video detection error:',
+                    data
+                );
+
+                alert(
+                    data.details
+                        ? data.error + ': ' + data.details
+                        : data.error
+                );
+
+                return;
+            }
+
+
+            /*
+             * Calculate processing time on frontend.
+             * Backend currently does not return processing_time_ms.
+             */
+            data.processing_time_ms =
+                Math.round(performance.now() - startTime);
+
+
+            renderResult(data);
+
+
+        } catch (e) {
+
+            console.error(
+                'Video analysis exception:',
+                e
+            );
+
+            alert(
+                'Video analysis failed: ' +
+                (e.message || e)
+            );
+
+        } finally {
+
+            analyzeBtn.disabled = false;
+        }
+
+    });
+}
+
+
+function renderResult(data) {
+
+    document.getElementById('progress-wrap')
+        .classList.add('hidden');
+
+    document.getElementById('scan-beam-el')
+        .classList.add('hidden');
+
+    document.getElementById('results-panel')
+        .classList.remove('hidden');
+
+
+    /*
+     * Prediction
+     */
+
+    const badge =
+        document.getElementById('result-badge');
+
+    badge.textContent =
+        data.prediction || 'Unknown';
+
+    badge.className =
+        'badge ' +
+        (
+            data.prediction === 'DEEPFAKE' ||
+            data.prediction === 'Fake'
+                ? 'badge-danger'
+                : 'badge-success'
+        );
+
+
+    /*
+     * Confidence
+     */
+
+    const confidence =
+        Number(data.confidence || 0);
+
+    const confidenceElement =
+        document.getElementById('result-confidence');
+
+    confidenceElement.textContent =
+        confidence.toFixed(2) + '%';
+
+    confidenceElement.className =
+        'text-5xl font-display font-bold confidence-mono ' +
+        (
+            data.prediction === 'DEEPFAKE' ||
+            data.prediction === 'Fake'
+                ? 'text-danger'
+                : 'text-success'
+        );
+
+
+    document.getElementById('confidence-bar')
+        .style.width =
+        Math.min(confidence, 100) + '%';
+
+
+    /*
+     * Frames
+     *
+     * Backend returns:
+     * frames_analyzed
+     */
+
+    const totalFrames =
+        Number(data.frames_analyzed || 0);
+
+    document.getElementById('result-frames')
+        .textContent =
+        totalFrames;
+
+
+    /*
+     * The current CNN-LSTM model does not return
+     * unsafe frame information.
+     *
+     * Therefore show N/A instead of crashing.
+     */
+
+    document.getElementById('result-unsafe-count')
+        .textContent =
+        'N/A';
+
+
+    /*
+     * Explanation
+     */
+
+    document.getElementById('result-explanation')
+        .textContent =
+        data.explanation ||
+        'No explanation available.';
+
+
+    /*
+     * Recommendation
+     */
+
+    document.getElementById('result-recommendation')
+        .textContent =
+        data.recommendation ||
+        'Verify the original source of the video.';
+
+
+    /*
+     * Model
+     */
+
+    document.getElementById('result-model')
+        .textContent =
+        data.model_used ||
+        'CNN-LSTM Video Model';
+
+
+    /*
+     * Processing time
+     */
+
+    document.getElementById('result-time')
+        .textContent =
+        (data.processing_time_ms || 0) +
+        ' ms';
+
+
+    /*
+     * Frame extraction timeline
+     */
+
+    const stripWrap =
+        document.getElementById('frame-strip');
+
+    const track =
+        document.getElementById('frame-track');
+
+    track.innerHTML = '';
+
+    stripWrap.classList.remove('hidden');
+
+
+    /*
+     * Show the 8 frames actually analyzed
+     */
+
+    const sampleCount =
+        Math.max(totalFrames, 1);
+
+
+    for (let i = 0; i < sampleCount; i++) {
+
+        const el =
+            document.createElement('div');
+
+        el.className =
+            'w-6 h-9 rounded shrink-0 bg-white/10';
+
+        el.title =
+            'Analyzed Frame ' + (i + 1);
+
+        track.appendChild(el);
+    }
+}
+
+</script>
+```

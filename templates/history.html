@@ -1,0 +1,78 @@
+{% extends "app_base.html" %}
+{% set active = 'history' %}
+{% block title %}Scan History — SENTRA AI{% endblock %}
+{% block app_content %}
+
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 animate-fade-up">
+  <div>
+    <h1 class="font-display text-2xl sm:text-3xl font-bold">Scan History</h1>
+    <p class="text-slate-400 text-sm mt-1">All your past detections in one place.</p>
+  </div>
+  <div class="flex gap-3">
+    <input type="text" id="search-input" onkeyup="filterTable()" placeholder="Search by file name..." class="!py-2.5 !text-sm w-64">
+    <select id="type-filter" onchange="filterTable()" class="!py-2.5 !text-sm">
+      <option value="">All Types</option>
+      <option value="image">Image</option>
+      <option value="video">Video</option>
+      <option value="audio">Audio</option>
+      <option value="ncii">NCII</option>
+    </select>
+  </div>
+</div>
+
+<div class="glass-card animate-fade-up delay-1 !p-0 overflow-hidden">
+  {% if scans %}
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm" id="history-table">
+      <thead class="bg-white/5 text-slate-400 text-xs uppercase tracking-wide">
+        <tr>
+          <th class="text-left px-5 py-3">File Name</th>
+          <th class="text-left px-5 py-3">Type</th>
+          <th class="text-left px-5 py-3">Prediction</th>
+          <th class="text-left px-5 py-3">Confidence</th>
+          <th class="text-left px-5 py-3">Date &amp; Time</th>
+          <th class="text-right px-5 py-3">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for scan in scans %}
+        <tr class="border-t border-white/5 hover:bg-white/[0.03]" data-type="{{ scan['file_type'] }}" data-name="{{ scan['file_name']|lower }}">
+          <td class="px-5 py-3.5 max-w-[220px] truncate">{{ scan['file_name'] }}</td>
+          <td class="px-5 py-3.5 capitalize text-slate-400">{{ scan['file_type'] }}</td>
+          <td class="px-5 py-3.5">
+            <span class="badge {% if scan['prediction'] in ['Fake','Unsafe','Potential NCII'] %}badge-danger{% else %}badge-success{% endif %}">{{ scan['prediction'] }}</span>
+          </td>
+          <td class="px-5 py-3.5 confidence-mono">{{ scan['confidence'] }}%</td>
+          <td class="px-5 py-3.5 text-slate-400">{{ scan['created_at'][:19].replace('T',' ') }}</td>
+          <td class="px-5 py-3.5 text-right">
+            <form method="POST" action="{{ url_for('delete_scan', scan_id=scan['id']) }}" onsubmit="return confirm('Delete this scan record?');" class="inline">
+              <button type="submit" class="text-danger hover:underline text-xs font-medium">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="text-center py-16">
+    <p class="text-5xl mb-4 opacity-50">🕓</p>
+    <p class="text-slate-400 text-sm">No scan history yet.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function filterTable() {
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const type = document.getElementById('type-filter').value;
+  document.querySelectorAll('#history-table tbody tr').forEach(row => {
+    const matchesSearch = row.dataset.name.includes(search);
+    const matchesType = !type || row.dataset.type === type;
+    row.style.display = (matchesSearch && matchesType) ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}

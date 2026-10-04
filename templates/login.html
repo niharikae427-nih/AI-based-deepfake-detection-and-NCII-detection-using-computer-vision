@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Login — SENTRA AI{% endblock %}
+{% block content %}
+<div class="min-h-screen flex items-center justify-center px-6 py-16">
+  <div class="w-full max-w-5xl grid lg:grid-cols-2 glass-card !p-0 overflow-hidden ring-glow animate-fade-up">
+
+    <!-- Brand panel -->
+    <div class="hidden lg:flex flex-col justify-between p-10 bg-gradient-to-br from-primary/15 via-secondary/10 to-transparent border-r border-white/5">
+      <a href="{{ url_for('landing') }}" class="flex items-center gap-3">
+        <div class="w-10 h-10 scan-ring bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-lg">🛡️</div>
+        <p class="font-display font-bold">SENTRA <span class="gradient-text">AI</span></p>
+      </a>
+      <div>
+        <h2 class="font-display text-2xl font-bold leading-snug">Welcome back to your<br>detection command center.</h2>
+        <p class="text-slate-400 text-sm mt-4">Track scans, review AI verdicts, and manage reports across image, video, audio, and NCII modules.</p>
+      </div>
+      <div class="flex gap-3">
+        <div class="w-2 h-2 rounded-full bg-primary"></div>
+        <div class="w-2 h-2 rounded-full bg-white/20"></div>
+        <div class="w-2 h-2 rounded-full bg-white/20"></div>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <div class="p-8 sm:p-12">
+      <h1 class="font-display text-2xl font-bold">Log in</h1>
+      <p class="text-slate-400 text-sm mt-2">Access your dashboard and detection tools.</p>
+
+      <form method="POST" class="mt-8 space-y-5">
+        <div>
+          <label class="text-xs text-slate-400 mb-1.5 block">Email address</label>
+          <input type="email" name="email" required placeholder="you@college.edu">
+        </div>
+        <div>
+          <label class="text-xs text-slate-400 mb-1.5 block">Password</label>
+          <input type="password" name="password" required placeholder="••••••••">
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <label class="flex items-center gap-2 text-slate-400 cursor-pointer">
+            <input type="checkbox" name="remember" class="w-4 h-4 accent-cyan-500"> Remember me
+          </label>
+          <a href="{{ url_for('forgot_password') }}" class="text-primary hover:underline">Forgot password?</a>
+        </div>
+        <button type="submit" class="btn-primary ripple w-full font-semibold">Log In</button>
+      </form>
+
+      <div class="flex items-center gap-3 my-6">
+        <div class="h-px bg-white/10 flex-1"></div>
+        <span class="text-xs text-slate-500">or continue with</span>
+        <div class="h-px bg-white/10 flex-1"></div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-3">
+        <a href="{{ url_for('login_google') }}" class="btn-outline ripple flex items-center justify-center !py-2.5 text-sm">Google</a>
+        <a href="{{ url_for('login_microsoft') }}" class="btn-outline ripple flex items-center justify-center !py-2.5 text-sm">Microsoft</a>
+        <a href="{{ url_for('qr_login') }}" class="btn-outline ripple flex items-center justify-center !py-2.5 text-sm">QR Code</a>
+      </div>
+
+      <p class="text-center text-sm text-slate-400 mt-8">
+        Don't have an account?
+        <a href="{{ url_for('register') }}" class="text-primary font-medium hover:underline">Create one</a>
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+<header class="sticky top-0 z-20 glass-nav !border-x-0 !border-t-0 px-5 lg:px-8 py-4 flex items-center justify-between gap-4">
+  <div class="flex items-center gap-3">
+    <button onclick="toggleSidebar()" class="lg:hidden text-2xl text-slate-200">☰</button>
+    <div class="relative hidden md:block">
+      <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">🔍</span>
+      <input type="text" placeholder="Search scans, reports, files..." class="!pl-9 !py-2.5 w-72 !text-sm">
+    </div>
+  </div>
+
+  <div class="flex items-center gap-3 lg:gap-4">
+    <button class="relative w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:border-primary/50 transition">
+      🔔
+      <span class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-danger text-[10px] flex items-center justify-center font-bold">3</span>
+    </button>
+
+    <div class="w-px h-8 bg-white/10 hidden sm:block"></div>
+
+    <a href="{{ url_for('profile') }}" class="flex items-center gap-2.5">
+      <div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center font-display font-bold text-sm">
+        {{ (logged_in_user['name'][0] if logged_in_user else 'U') | upper }}
+      </div>
+      <div class="hidden sm:block leading-tight">
+        <p class="text-sm font-medium">{{ logged_in_user['name'] if logged_in_user else 'User' }}</p>
+        <p class="text-[11px] text-slate-400">{{ logged_in_user['department'] if logged_in_user and logged_in_user['department'] else 'Analyst' }}</p>
+      </div>
+    </a>
+  </div>
+</header>
