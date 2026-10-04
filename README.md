@@ -1,0 +1,2 @@
+# AI-based-deepfake-detection-and-NCII-detection-using-computer-vision
+An AI-powered computer vision system designed to detect deepfake/manipulated media and Non-Consensual Intimate Images (NCII) using advanced image analysis and deep learning techniques.  The project aims to identify digitally manipulated or synthetic visual content and help detect potentially harmful intimate images shared without consent. 
